@@ -9,6 +9,7 @@ pipeline {
 
         ENVIRONMENTS = 'dev qa staging prod' // we will use this variable to create the namespaces in kubernetes
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        DOCKER_COMPOSE_CMD = 'docker compose' // Use 'docker compose' for newer Docker versions
         KUBECONFIG = credentials("config") // we retrieve kubeconfig from secret file called config saved on jenkins
         // K8S_NAMESPACE = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}" // This line remains commented as it's a different logic
     }
@@ -19,7 +20,7 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker images from compose file..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
+                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} build"
                 }
             }
         }
@@ -28,8 +29,8 @@ pipeline {
             steps {
                 script {
                     echo "Running tests..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} run movie_service pytest"
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} run cast_service pytest"
+                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} run movie_service pytest"
+                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} run cast_service pytest"
                 }
             }
         }
