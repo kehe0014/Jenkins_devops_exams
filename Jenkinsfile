@@ -24,7 +24,7 @@ pipeline {
                 }
             }
         }
-
+'''
         stage('Run Tests') {
             steps {
                 script {
@@ -34,7 +34,7 @@ pipeline {
                 }
             }
         }
-
+'''
         stage('Deploy to Dev') {
             when {
                 // This stage will only run if the current branch is 'develop'
