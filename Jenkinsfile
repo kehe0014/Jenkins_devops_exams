@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker images from compose file..."
-                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} build"
+                    sh "TAG=${DOCKER_TAG} ${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} build"
                 }
             }
         }

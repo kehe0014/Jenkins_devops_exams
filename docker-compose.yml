@@ -1,5 +1,6 @@
 services:
   movie_service:
+    image: tdksoft/devops-eval-movie-service:${TAG:-latest}  # Dynamic tag
     build: 
       context: ./movie-service
       dockerfile: Dockerfile
@@ -41,6 +42,7 @@ services:
       - app-network
 
   cast_service:
+    image: tdksoft/devops-eval-cast-service:${TAG:-latest}  # Dynamic tag
     build: 
       context: ./cast-service
       dockerfile: Dockerfile
