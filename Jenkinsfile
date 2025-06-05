@@ -45,13 +45,15 @@ pipeline {
             }
             steps {
                 script {
+                    sh '''
                     echo "Deploying to 'dev' environment..."
-                    // Add your deployment steps for the 'dev' environment here.
-                    // This could involve:
-                    // - `kubectl apply -f k8s/dev/`
-                    // - `helm upgrade --install dev-app ./helm-charts --namespace dev`
-                    // - `docker push ${DOCKER_ID}/${DOCKER_IMAGE}:${DOCKER_TAG}` (if deploying directly)
+                    rm -Rf .kube
+                    mkdir .kube
+                    ls
+                    cat $KUBECONFIG > .kube/config
+                    kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
                     echo "Deployment to dev environment triggered by develop branch."
+                    '''
                 }
             }
         }
