@@ -24,17 +24,14 @@ pipeline {
                 }
             }
         }
-'''
-        stage('Run Tests') {
+        stage('Push Docker Images') {
             steps {
                 script {
-                    echo "Running tests..."
-                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} run movie_service pytest"
-                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} run cast_service pytest"
+                    echo "Pushing Docker images to Docker Hub..."
+                    sh "${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} push"
                 }
             }
         }
-'''
         stage('Deploy to Dev') {
             when {
                 // This stage will only run if the current branch is 'develop'
