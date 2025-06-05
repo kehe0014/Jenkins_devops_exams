@@ -4,7 +4,8 @@ pipeline {
 
     environment { // Declaration of environment variables
         DOCKER_ID = "tdksoft" // replace this with your docker-id
-        DOCKER_IMAGE = "devopsexam" // replace this with your docker image name
+        DOCKER_IMAGE_MS = "devops-eval-movie-service" // this is the name of our docker image for movie service
+        DOCKER_IMAGE_CS = "devops-eval-cast-service"   // this is the name of our docker image for cast service
         DOCKER_TAG = "v.${BUILD_ID}.0" // we will tag our images with the current build in order to increment the value by 1 with each new build
 
         ENVIRONMENTS = 'dev qa staging prod' // we will use this variable to create the namespaces in kubernetes
@@ -33,7 +34,7 @@ pipeline {
                 script {
                 sh '''
                 docker login -u $DOCKER_ID -p $DOCKER_PASS
-                docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+                docker push $DOCKER_ID/$DOCKER_IMAGE_MS:$DOCKER_TAG
                 '''
                 }
             }
