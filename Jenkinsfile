@@ -32,17 +32,11 @@ pipeline {
             steps {
                 script {
                     echo "📤 Pushing Docker images to Docker Hub..."
-                    withCredentials([usernamePassword(
-                        credentialsId: 'DOCKER_HUB_PASS',
-                        usernameVariable: 'DOCKER_ID',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
                         sh """
                         docker login -u $DOCKER_ID -p $DOCKER_PASS
                         docker push $DOCKER_ID/$DOCKER_IMAGE_MS:$DOCKER_TAG
                         docker push $DOCKER_ID/$DOCKER_IMAGE_CS:$DOCKER_TAG
                         """
-                    }
                 }
             }
         }
