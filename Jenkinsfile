@@ -56,10 +56,10 @@ pipeline {
             }
         }
         stage('Deploy to Dev') {
-            when {
+            //when {
                 // This stage will only run if the current branch is 'develop'
-                branch 'develop'
-            }
+               // branch 'develop'
+           // }
             steps {
                 script {
                     echo "Deploying to 'dev' environment..."
@@ -78,10 +78,10 @@ pipeline {
             }
         }
         stage('Deploy to Staging') {
-            when {
+            //when {
                 // This stage will only run if the current branch is 'staging'
-                branch 'staging'
-            }
+                //branch 'staging'
+            //}
             steps {
                 script {
                     echo "Deploying to 'staging' environment..."
@@ -100,10 +100,10 @@ pipeline {
             }
         }
         stage('Deploy to Production') {
-            when {
-                // This stage will only run if the current branch is 'main'
-                branch 'main'
-            }
+           // when {
+                // This stage will only run if the current branch is 'master'
+              //  branch 'master'
+           // }
             steps {
                 // Create an Approval Button with a timeout of 15 minutes.
                 // this requires a manual validation in order to deploy on production environment
