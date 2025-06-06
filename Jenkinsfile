@@ -105,22 +105,25 @@ def deployToEnvironment(String env) {
         sh """
         rm -rf .kube && mkdir -p .kube
         cat \$KUBECONFIG > .kube/config
-        cp charts/values.yaml values.yml
-        sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
 
         helm lint charts
 
+        # Deployment movie-service
         helm upgrade --install app-movie charts \\
-            --values=values.yml \\
             --namespace ${env} \\
             --create-namespace \\
-            --wait
+            --wait \\
+            --set image.repository=${DOCKER_ID}/${DOCKER_IMAGE_MS} \\
+            --set image.tag=${DOCKER_TAG}
 
+        # Deployment cast-service
         helm upgrade --install app-cast charts \\
-            --values=values.yml \\
             --namespace ${env} \\
             --create-namespace \\
-            --wait
+            --wait \\
+            --set image.repository=${DOCKER_ID}/${DOCKER_IMAGE_CS} \\
+            --set image.tag=${DOCKER_TAG}
         """
     }
 }
+
