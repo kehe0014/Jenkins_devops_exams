@@ -21,21 +21,61 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker images from compose file..."
-                    sh "TAG=${DOCKER_TAG} ${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} build"
+                    sh ''' 
+                    TAG=${DOCKER_TAG} ${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} build
+                    sleep 6
+                    '''
                 }
             }
         }
 
-        stage('Docker Push') { //we pass the built image to our docker hub account
-            environment {
-                    DOCKER_PASS = credentials("DOCKER_HUB_PASS") // we retrieve docker password from secret text called docker_hub_pass saved on jenkins
-                }
+        stage('Run Docker Containers') { // run containers from our built images
             steps {
                 script {
-                sh '''
-                docker login -u $DOCKER_ID -p $DOCKER_PASS
-                docker push $DOCKER_ID/$DOCKER_IMAGE_MS:$DOCKER_TAG
-                '''
+                    echo "Running Docker containers..."
+                    sh '''
+                    ${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} up -d
+                    sleep 10
+                    '''
+                }
+            }
+        }
+
+        stage('Test Acceptance') { // we launch the curl command to validate that the containers respond to the request
+            steps {
+                script {
+                    echo "Testing acceptance..."
+                    sh '''
+                    curl localhost:8080/api/movies
+                    curl localhost:8081/api/casts
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Push') { //we pass the built images to our docker hub account
+            environment {
+                DOCKER_PASS = credentials("DOCKER_HUB_PASS") // we retrieve docker password from secret text called docker_hub_pass saved on jenkins
+            }
+            steps {
+                script {
+                    sh '''
+                    docker login -u $DOCKER_ID -p $DOCKER_PASS
+                    docker push $DOCKER_ID/$DOCKER_IMAGE_MS:$DOCKER_TAG
+                    docker push $DOCKER_ID/$DOCKER_IMAGE_CS:$DOCKER_TAG
+                    '''
+                }
+            }
+        }
+        stage('Create Kubernetes Namespaces') {
+            steps {
+                script {
+                    echo "Creating Kubernetes namespaces..."
+                    sh '''
+                    for env in $ENVIRONMENTS; do
+                        kubectl create namespace $env --dry-run=client -o yaml | kubectl apply -f -
+                    done
+                    '''
                 }
             }
         }
@@ -46,18 +86,68 @@ pipeline {
             }
             steps {
                 script {
-                    sh '''
                     echo "Deploying to 'dev' environment..."
+                    sh '''
                     rm -Rf .kube
                     mkdir .kube
                     ls
                     cat $KUBECONFIG > .kube/config
-                    kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+                    cp fastapi/values.yaml values.yml
+                    sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                    helm upgrade --install app fastapi --values=values.yml --namespace prod
                     echo "Deployment to dev environment triggered by develop branch."
                     '''
                 }
             }
         }
+        stage('Deploy to Staging') {
+            when {
+                // This stage will only run if the current branch is 'staging'
+                branch 'staging'
+            }
+            steps {
+                script {
+                    echo "Deploying to 'staging' environment..."
+                    sh '''
+                    rm -Rf .kube
+                    mkdir .kube
+                    ls
+                    cat $KUBECONFIG > .kube/config
+                    cp fastapi/values.yaml values.yml
+                    sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                    helm upgrade --install app fastapi --values=values.yml --namespace prod
+                    echo "Deployment to staging environment triggered by staging branch."
+                    '''
+                }
+            }
+        }
+        stage('Deploy to Production') {
+            when {
+                // This stage will only run if the current branch is 'main'
+                branch 'main'
+            }
+            steps {
+                // Create an Approval Button with a timeout of 15 minutes.
+                // this requires a manual validation in order to deploy on production environment
+                timeout(time: 15, unit: "MINUTES") {
+                    input message: 'Do you want to deploy in production ?', ok: 'Yes'
+                }
+                script {
+                    echo "Deploying to 'prod' environment..."
+                    sh '''
+                    rm -Rf .kube
+                    mkdir .kube
+                    ls
+                    cat $KUBECONFIG > .kube/config
+                    cp fastapi/values.yaml values.yml
+                    sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                    helm upgrade --install app fastapi --values=values.yml --namespace prod
+                    echo "Deployment to production environment triggered by main branch."
+                    '''
+                }
+            }
+        }
+                  
       
     }
 }
