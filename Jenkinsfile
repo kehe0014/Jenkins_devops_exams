@@ -68,9 +68,10 @@ pipeline {
                     mkdir .kube
                     ls
                     cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
+                    cp charts/values.yaml values.yml
                     sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace prod
+                    helm upgrade --install app movie-service --values=values.yml --namespace dev
+                    helm upgrade --install app cast-service --values=values.yml --namespace dev
                     echo "Deployment to dev environment triggered by develop branch."
                     '''
                 }
@@ -89,9 +90,10 @@ pipeline {
                     mkdir .kube
                     ls
                     cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
+                    cp charts/values.yaml values.yml
                     sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace prod
+                    helm upgrade --install app movie-service --values=values.yml --namespace staging
+                    helm upgrade --install app cast-service --values=values.yml --namespace staging
                     echo "Deployment to staging environment triggered by staging branch."
                     '''
                 }
@@ -115,16 +117,15 @@ pipeline {
                     mkdir .kube
                     ls
                     cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
+                    cp charts/values.yaml values.yml
                     sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace prod
+                    helm upgrade --install app movie-service --values=values.yml --namespace staging
+                    helm upgrade --install app cast-service --values=values.yml --namespace staging
                     echo "Deployment to production environment triggered by main branch."
                     '''
                 }
             }
-        }
-                  
-      
+        }                  
     }
 }
 
