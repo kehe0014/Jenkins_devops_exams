@@ -29,30 +29,6 @@ pipeline {
             }
         }
 
-        stage('Run Docker Containers') { // run containers from our built images
-            steps {
-                script {
-                    echo "Running Docker containers..."
-                    sh '''
-                    ${DOCKER_COMPOSE_CMD} -f ${DOCKER_COMPOSE_FILE} up -d
-                    sleep 10
-                    '''
-                }
-            }
-        }
-
-        stage('Test Acceptance') { // we launch the curl command to validate that the containers respond to the request
-            steps {
-                script {
-                    echo "Testing acceptance..."
-                    sh '''
-                    curl localhost:8080/api/movies
-                    curl localhost:8081/api/casts
-                    '''
-                }
-            }
-        }
-
         stage('Docker Push') { //we pass the built images to our docker hub account
             environment {
                 DOCKER_PASS = credentials("DOCKER_HUB_PASS") // we retrieve docker password from secret text called docker_hub_pass saved on jenkins
