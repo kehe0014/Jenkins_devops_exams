@@ -101,24 +101,26 @@ pipeline {
 // Custom function for environment deployment
 def deployToEnvironment(String env) {
     echo "🚀 Deploying to '${env}' environment..."
-    sh """
-    rm -rf .kube && mkdir -p .kube
-    cat \$KUBECONFIG > .kube/config
-    cp charts/values.yaml values.yml
-    sed -i "s+tag.*+tag: ${env == 'prod' ? env.DOCKER_TAG : env.DOCKER_TAG}+g" values.yml
+    withEnv(["DEPLOY_ENV=${env}"]) {
+        sh """
+        rm -rf .kube && mkdir -p .kube
+        cat \$KUBECONFIG > .kube/config
+        cp charts/values.yaml values.yml
+        sed -i "s+tag.*+tag: ${env.DOCKER_TAG}+g" values.yml
 
-    helm lint charts
+        helm lint charts
 
-    helm upgrade --install app-movie charts \
-        --values=values.yml \
-        --namespace ${env} \
-        --create-namespace \
-        --wait
+        helm upgrade --install app-movie charts \\
+            --values=values.yml \\
+            --namespace ${env} \\
+            --create-namespace \\
+            --wait
 
-    helm upgrade --install app-cast charts \
-        --values=values.yml \
-        --namespace ${env} \
-        --create-namespace \
-        --wait
-    """
+        helm upgrade --install app-cast charts \\
+            --values=values.yml \\
+            --namespace ${env} \\
+            --create-namespace \\
+            --wait
+        """
+    }
 }
