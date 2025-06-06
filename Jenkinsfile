@@ -106,7 +106,7 @@ def deployToEnvironment(String env) {
         rm -rf .kube && mkdir -p .kube
         cat \$KUBECONFIG > .kube/config
         cp charts/values.yaml values.yml
-        sed -i "s+tag.*+tag: ${env.DOCKER_TAG}+g" values.yml
+        sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
 
         helm lint charts
 
